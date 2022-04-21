@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.2/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         executionOrder="depends,defects"
+         beStrictAboutOutputDuringTests="true"
+         beStrictAboutTodoAnnotatedTests="true"
+         cacheResultFile="var/cache/.phpunit.result.cache"
+         verbose="true">
+    <testsuites>
+        <testsuite name="unit">
+            <directory suffix="Test.php">src/Auth/Test/Unit</directory>
+            <directory suffix="Test.php">src/Frontend/Test/Unit</directory>
+            <directory suffix="Test.php">src/Http/Test/Unit</directory>
+        </testsuite>
+        <testsuite name="functional">
+            <directory suffix="Test.php">tests/Functional</directory>
+        </testsuite>
+    </testsuites>
+
+    <filter>
+        <whitelist processUncoveredFilesFromWhitelist="true">
+            <directory suffix=".php">src</directory>
+            <exclude>
+                <directory>src/Auth/Test</directory>
+                <directory>src/Frontend/Test</directory>
+                <directory>src/Http/Test</directory>
+            </exclude>
+        </whitelist>
+    </filter>
+
+    <php>
+        <env name="APP_ENV" value="test" force="true"/>
+        <env name="APP_DEBUG" value="1" force="true"/>
+    </php>
+</phpunit>

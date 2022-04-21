@@ -1,0 +1,25 @@
+---
+-   name: Provision manager
+    hosts: manager
+    remote_user: root
+    roles:
+        - docker
+        - certbot
+        - swarm-manager
+
+# -   name: Provision worker
+#     hosts: workers
+#     remote_user: root
+#     roles:
+#         - docker
+#         - swarm-worker
+
+# -   name: Set labels
+#     hosts: manager
+#     remote_user: root
+#     roles:
+#         -   role: swarm-labels
+#             vars:
+#                 hostname: "{{ db_hostname }}"
+#                 labels:
+#                     db: db

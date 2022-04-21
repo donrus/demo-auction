@@ -1,0 +1,4 @@
+certbot_email: donrusvlad@gmail.com
+certbot_hosts:
+    - demo-auction.donrus.net
+    - api.demo-auction.donrus.net
