@@ -11,8 +11,7 @@ pipeline {
     stages {
         stage("Init") {
             steps {
-                sh "docker version"
-                sh "docker-compose version"
+                sh "docker-compose down"
             }
         }
         stage("Valid") {
