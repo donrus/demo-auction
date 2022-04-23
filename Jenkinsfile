@@ -11,7 +11,8 @@ pipeline {
     stages {
         stage("Init") {
             steps {
-                sh "make init"
+                sh "docker version"
+                sh "docker compose version"
             }
         }
         stage("Valid") {
