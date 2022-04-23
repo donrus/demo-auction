@@ -30,31 +30,33 @@ pipeline {
         }
         stage("Valid") {
             steps {
-                sh "make api-validate-schema"
+                sh "docker-compose run --rm api-php-cli composer app orm:validate-schema"
             }
         }
         stage("Lint") {
             parallel {
                 stage("API") {
                     steps {
-                        sh "make api-lint"
+                        sh "docker-compose run --rm api-php-cli composer lint"
+                        sh "docker-compose run --rm api-php-cli composer cs-check"
                     }
                 }
                 stage("Frontend") {
                     steps {
-                        sh "make frontend-lint"
+                        sh "docker-compose run --rm frontend-node-cli yarn eslint"
+                        sh "docker-compose run --rm frontend-node-cli yarn stylelint"
                     }
                 }
                 stage("Cucumber") {
                     steps {
-                        sh "make cucumber-lint"
+                        sh "docker-compose run --rm cucumber-node-cli yarn lint"
                     }
                 }
             }
         }
         stage("Analyze") {
             steps {
-                sh "make api-analyze"
+                sh "docker-compose run --rm api-php-cli composer psalm"
             }
         }
         stage("Test") {
