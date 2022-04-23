@@ -63,7 +63,7 @@ pipeline {
             parallel {
                 stage("API") {
                     steps {
-                        sh "make api-test"
+                        sh "docker-compose run --rm api-php-cli composer test"
                     }
                     post {
                         failure {
@@ -73,36 +73,45 @@ pipeline {
                 }
                 stage("Front") {
                     steps {
-                        sh "make frontend-test"
+                        sh "docker-compose run --rm frontend-node-cli yarn test --watchAll=false"
                     }
                 }
             }
         }
         stage("Down") {
             steps {
-                sh "make docker-down-clear"
+                sh "docker-compose down -v --remove-orphans"
             }
         }
         stage("Build") {
             steps {
-                sh "make build"
+                sh "docker --log-level=debug build --pull --file=gateway/docker/production/nginx/Dockerfile --tag=${REGISTRY}/auction-gateway:${IMAGE_TAG} gateway/docker"
+                sh "docker --log-level=debug build --pull --file=frontend/docker/production/nginx/Dockerfile --tag=${REGISTRY}/auction-frontend:${IMAGE_TAG} frontend"
+                sh "docker --log-level=debug build --pull --file=api/docker/production/nginx/Dockerfile --tag=${REGISTRY}/auction-api:${IMAGE_TAG} api"
+                sh "docker --log-level=debug build --pull --file=api/docker/production/php-fpm/Dockerfile --tag=${REGISTRY}/auction-api-php-fpm:${IMAGE_TAG} api"
+                sh "docker --log-level=debug build --pull --file=api/docker/production/php-cli/Dockerfile --tag=${REGISTRY}/auction-api-php-cli:${IMAGE_TAG} api"
             }
         }
         stage("Testing") {
             stages {
                 stage("Build") {
                     steps {
-                        sh "make testing-build"
+                        sh "docker --log-level=debug build --pull --file=gateway/docker/testing/nginx/Dockerfile --tag=${REGISTRY}/auction-testing-gateway:${IMAGE_TAG} gateway/docker"
+                        sh "docker --log-level=debug build --pull --file=api/docker/testing/php-cli/Dockerfile --tag=${REGISTRY}/auction-testing-api-php-cli:${IMAGE_TAG} api"
+                        sh "docker --log-level=debug build --pull --file=cucumber/docker/testing/node/Dockerfile --tag=${REGISTRY}/auction-cucumber-node-cli:${IMAGE_TAG} cucumber"
                     }
                 }
                 stage("Init") {
                     steps {
-                        sh "make testing-init"
+                        sh "COMPOSE_PROJECT_NAME=testing docker-compose -f docker-compose-testing.yml up -d"
+                        sh "COMPOSE_PROJECT_NAME=testing docker-compose -f docker-compose-testing.yml run --rm api-php-cli wait-for-it api-postgres:5432 -t 60"
+                        sh "COMPOSE_PROJECT_NAME=testing docker-compose -f docker-compose-testing.yml run --rm api-php-cli php bin/app.php migrations:migrate --no-interaction"
+                        sh "COMPOSE_PROJECT_NAME=testing docker-compose -f docker-compose-testing.yml run --rm testing-api-php-cli php bin/app.php fixtures:load --no-interaction"
                     }
                 }
                 stage("Smoke") {
                     steps {
-                        sh "make testing-smoke"
+                        sh "COMPOSE_PROJECT_NAME=testing docker-compose -f docker-compose-testing.yml run --rm cucumber-node-cli yarn smoke-ci"
                     }
                     post {
                         failure {
@@ -112,7 +121,7 @@ pipeline {
                 }
                 stage("E2E") {
                     steps {
-                        sh "make testing-e2e"
+                        sh "COMPOSE_PROJECT_NAME=testing docker-compose -f docker-compose-testing.yml run --rm cucumber-node-cli yarn e2e-ci"
                     }
                     post {
                         failure {
@@ -122,7 +131,7 @@ pipeline {
                 }
                 stage("Down") {
                     steps {
-                        sh "make testing-down-clear"
+                        sh "COMPOSE_PROJECT_NAME=testing docker-compose -f docker-compose-testing.yml down -v --remove-orphans"
                     }
                 }
             }
