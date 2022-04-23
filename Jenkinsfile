@@ -13,6 +13,19 @@ pipeline {
             steps {
                 sh "docker-compose down -v --remove-orphans"
                 sh "docker run --rm -v ${PWD}/api:/app -w /app alpine sh -c 'rm -rf var/cache/* var/log/* var/test/*'"
+                sh "docker run --rm -v ${PWD}/frontend:/app -w /app alpine sh -c 'rm -rf .ready build'"
+                sh "docker run --rm -v ${PWD}/cucumber:/app -w /app alpine sh -c 'rm -rf var/*'"
+                sh "docker-compose pull --include-deps"
+                sh "docker-compose build"
+                sh "docker-compose up -d"
+                sh "docker run --rm -v ${PWD}/api:/app -w /app alpine chmod 777 var/cache var/log var/test"
+                sh "docker-compose run --rm api-php-cli composer install"
+                sh "docker-compose run --rm api-php-cli wait-for-it api-postgres:5432 -t 30"
+                sh "docker-compose run --rm api-php-cli composer app migrations:migrate"
+                sh "docker-compose run --rm api-php-cli composer app fixtures:load"
+                sh "docker-compose run --rm frontend-node-cli yarn install"
+                sh "docker run --rm -v ${PWD}/frontend:/app -w /app alpine touch .ready"
+                sh "docker-compose run --rm cucumber-node-cli yarn install"
             }
         }
         stage("Valid") {
