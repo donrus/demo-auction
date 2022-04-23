@@ -11,7 +11,7 @@ pipeline {
     stages {
         stage("Init") {
             steps {
-                sh "docker-compose down"
+                sh "make docker-down"
             }
         }
         stage("Valid") {
