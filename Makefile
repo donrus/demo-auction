@@ -22,7 +22,7 @@ docker-down:
 	docker-compose down --remove-orphans
 
 docker-down-clear:
-	docker-compose down --remove-orphans
+	docker-compose down -v --remove-orphans
 
 docker-pull:
 	docker-compose pull --include-deps

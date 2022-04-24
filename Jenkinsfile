@@ -174,7 +174,12 @@ pipeline {
                     string(credentialsId: 'SENTRY_DSN', variable: 'SENTRY_DSN')
                 ]) {
                     sshagent (credentials: ['PRODUCTION_AUTH']) {
-                        sh "BUILD_NUMBER=${env.BUILD_NUMBER} make deploy"
+                        sh "ssh -o StrictHostKeyChecking=no deploy@${HOST} -p ${PORT} 'rm -rf site_${env.BUILD_NUMBER}'"
+                        sh "ssh -o StrictHostKeyChecking=no deploy@${HOST} -p ${PORT} 'mkdir site_${env.BUILD_NUMBER}'"
+                        sh "envsubst < docker-compose-production.yml > docker-compose-production-env.yml"
+                        sh "scp -o StrictHostKeyChecking=no -P ${PORT} docker-compose-production-env.yml deploy@${HOST}:site_${env.BUILD_NUMBER}/docker-compose.yml"
+                        sh "rm -f docker-compose-production-env.yml"
+                        sh "ssh -o StrictHostKeyChecking=no deploy@${HOST} -p ${PORT} 'cd site_${env.BUILD_NUMBER} && docker stack deploy --compose-file docker-compose.yml auction --with-registry-auth --prune'"
                     }
                 }
             }
@@ -182,9 +187,9 @@ pipeline {
     }
     post {
         always {
-            sh "make docker-down-clear || true"
-            sh "make testing-down-clear || true"
-            sh "make deploy-clean || true"
+            sh "docker-compose down -v --remove-orphans || true"
+            sh "COMPOSE_PROJECT_NAME=testing docker-compose -f docker-compose-testing.yml down -v --remove-orphans || true"
+            sh "rm -f docker-compose-production-env.yml || true"
         }
         failure {
             emailext (
