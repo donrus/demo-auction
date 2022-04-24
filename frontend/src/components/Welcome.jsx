@@ -5,7 +5,7 @@ function Welcome() {
   return (
     <div data-test="welcome" className={styles.welcome}>
       <h1>Auction</h1>
-      <p>We will be here soon</p>
+      <p>In developing...</p>
     </div>
   )
 }
