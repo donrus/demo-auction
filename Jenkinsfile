@@ -179,7 +179,7 @@ pipeline {
                         sh "envsubst < docker-compose-production.yml > docker-compose-production-env.yml"
                         sh "scp -o StrictHostKeyChecking=no -P ${PORT} docker-compose-production-env.yml deploy@${HOST}:site_${env.BUILD_NUMBER}/docker-compose.yml"
                         sh "rm -f docker-compose-production-env.yml"
-                        sh "ssh -o StrictHostKeyChecking=no deploy@${HOST} -p ${PORT} 'cd site_${env.BUILD_NUMBER} && docker stack deploy --compose-file docker-compose.yml donrusvlad1.fvds.ru --with-registry-auth --prune'"
+                        sh "ssh -o StrictHostKeyChecking=no deploy@${HOST} -p ${PORT} 'cd site_${env.BUILD_NUMBER} && docker stack deploy --compose-file docker-compose.yml auction --with-registry-auth --prune'"
                     }
                 }
             }
