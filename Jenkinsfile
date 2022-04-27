@@ -149,12 +149,12 @@ pipeline {
                     )
                 ]) {
                     sh "docker login -u=$USER -p='$PASSWORD' $REGISTRY"
+                    sh "docker push ${REGISTRY}/auction-gateway:${IMAGE_TAG}"
+                    sh "docker push ${REGISTRY}/auction-frontend:${IMAGE_TAG}"
+                    sh "docker push ${REGISTRY}/auction-api:${IMAGE_TAG}"
+                    sh "docker push ${REGISTRY}/auction-api-php-fpm:${IMAGE_TAG}"
+                    sh "docker push ${REGISTRY}/auction-api-php-cli:${IMAGE_TAG}"
                 }
-                sh "docker push ${REGISTRY}/auction-gateway:${IMAGE_TAG}"
-                sh "docker push ${REGISTRY}/auction-frontend:${IMAGE_TAG}"
-                sh "docker push ${REGISTRY}/auction-api:${IMAGE_TAG}"
-                sh "docker push ${REGISTRY}/auction-api-php-fpm:${IMAGE_TAG}"
-                sh "docker push ${REGISTRY}/auction-api-php-cli:${IMAGE_TAG}"
             }
         }
         stage ('Prod') {
