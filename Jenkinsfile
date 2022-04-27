@@ -149,12 +149,12 @@ pipeline {
                     )
                 ]) {
                     sh "docker login -u=$USER -p='$PASSWORD' $REGISTRY"
-                    sh "docker push ${REGISTRY}/auction-gateway:${IMAGE_TAG}"
-                    sh "docker push ${REGISTRY}/auction-frontend:${IMAGE_TAG}"
-                    sh "docker push ${REGISTRY}/auction-api:${IMAGE_TAG}"
-                    sh "docker push ${REGISTRY}/auction-api-php-fpm:${IMAGE_TAG}"
-                    sh "docker push ${REGISTRY}/auction-api-php-cli:${IMAGE_TAG}"
                 }
+                sh "docker push ${REGISTRY}/auction-gateway:${IMAGE_TAG}"
+                sh "docker push ${REGISTRY}/auction-frontend:${IMAGE_TAG}"
+                sh "docker push ${REGISTRY}/auction-api:${IMAGE_TAG}"
+                sh "docker push ${REGISTRY}/auction-api-php-fpm:${IMAGE_TAG}"
+                sh "docker push ${REGISTRY}/auction-api-php-cli:${IMAGE_TAG}"
             }
         }
         stage ('Prod') {
@@ -174,12 +174,7 @@ pipeline {
                     string(credentialsId: 'SENTRY_DSN', variable: 'SENTRY_DSN')
                 ]) {
                     sshagent (credentials: ['PRODUCTION_AUTH']) {
-                        sh "ssh -o StrictHostKeyChecking=no deploy@${HOST} -p ${PORT} 'rm -rf site_${env.BUILD_NUMBER}'"
-                        sh "ssh -o StrictHostKeyChecking=no deploy@${HOST} -p ${PORT} 'mkdir site_${env.BUILD_NUMBER}'"
-                        sh "envsubst < docker-compose-production.yml > docker-compose-production-env.yml"
-                        sh "scp -o StrictHostKeyChecking=no -P ${PORT} docker-compose-production-env.yml deploy@${HOST}:site_${env.BUILD_NUMBER}/docker-compose.yml"
-                        sh "rm -f docker-compose-production-env.yml"
-                        sh "ssh -o StrictHostKeyChecking=no deploy@${HOST} -p ${PORT} 'cd site_${env.BUILD_NUMBER} && docker stack deploy --compose-file docker-compose.yml auction --with-registry-auth --prune'"
+                        sh "BUILD_NUMBER=${env.BUILD_NUMBER} make deploy"
                     }
                 }
             }
