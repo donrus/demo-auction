@@ -188,7 +188,7 @@ pipeline {
                         sh "ssh -o StrictHostKeyChecking=no deploy@${HOST} -p ${PORT} 'cd site_${env.BUILD_NUMBER} && echo 'API_MAILER_FROM_EMAIL=${API_MAILER_FROM_EMAIL}' >> .env'"
                         sh "ssh -o StrictHostKeyChecking=no deploy@${HOST} -p ${PORT} 'cd site_${env.BUILD_NUMBER} && echo 'SENTRY_DSN=${SENTRY_DSN}' >> .env'"
                         sh "ssh -o StrictHostKeyChecking=no deploy@${HOST} -p ${PORT} 'cd site_${env.BUILD_NUMBER} && docker-compose pull'"
-                        sh "ssh -o StrictHostKeyChecking=no deploy@${HOST} -p ${PORT} 'cd site_${env.BUILD_NUMBER} && docker-compose up --env-file ./.env --build -d api-postgres api-php-cli'"
+                        sh "ssh -o StrictHostKeyChecking=no deploy@${HOST} -p ${PORT} 'cd site_${env.BUILD_NUMBER} && docker-compose up --env-file ./.env --force-recreate --build -d api-postgres api-php-cli'"
                         sh "ssh -o StrictHostKeyChecking=no deploy@${HOST} -p ${PORT} 'cd site_${env.BUILD_NUMBER} && docker-compose run api-php-cli wait-for-it api-postgres:5432 -t 60'"
                         sh "ssh -o StrictHostKeyChecking=no deploy@${HOST} -p ${PORT} 'cd site_${env.BUILD_NUMBER} && docker-compose run api-php-cli php bin/app.php migrations:migrate --no-interaction'"
                         sh "ssh -o StrictHostKeyChecking=no deploy@${HOST} -p ${PORT} 'cd site_${env.BUILD_NUMBER} && docker-compose up --force-recreate --remove-orphans -d'"
