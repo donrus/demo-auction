@@ -10,32 +10,13 @@ services:
            - "8081:8081"
            - "8082:8082"
 
-        deploy:
-            mode: replicated
-            replicas: 2
-            update_config:
-                parallelism: 1
-                delay: 10s
-            placement:
-                constraints: [node.role == manager]
-
     frontend:
         image: ${REGISTRY}/auction-frontend:${IMAGE_TAG}
-        deploy:
-            mode: replicated
-            replicas: 2
-            update_config:
-                parallelism: 1
-                delay: 10s
+        restart: always
 
     api:
         image: ${REGISTRY}/auction-api:${IMAGE_TAG}
-        deploy:
-            mode: replicated
-            replicas: 2
-            update_config:
-                parallelism: 1
-                delay: 5s
+        restart: always
 
     api-php-fpm:
         image: ${REGISTRY}/auction-api-php-fpm:${IMAGE_TAG}
@@ -54,12 +35,6 @@ services:
             MAILER_FROM_EMAIL: ${API_MAILER_FROM_EMAIL}
             FRONTEND_URL: https://demo-auction.donrus.net
             SENTRY_DSN: ${SENTRY_DSN}
-        deploy:
-            mode: replicated
-            replicas: 2
-            update_config:
-                parallelism: 1
-                delay: 5s
 
     api-migration:
         image: ${REGISTRY}/auction-api-php-cli:${IMAGE_TAG}
@@ -77,14 +52,7 @@ services:
             MAILER_ENCRYPTION: tls
             MAILER_FROM_EMAIL: ${API_MAILER_FROM_EMAIL}
             FRONTEND_URL: https://demo-auction.donrus.net
-            SENTRY_DSN: ${SENTRY_DSN}
-        command: sh -c 'wait-for-it api-postgres:5432 -t 60 && php bin/app.php migrations:migrate --no-interaction'
-        deploy:
-            restart_policy:
-                condition: on-failure
-                delay: 5s
-                max_attempts: 5
-                window: 120s
+            SENTRY_DSN: ${SENTRY_DSN}     
 
     api-postgres:
         image: postgres:12.2-alpine
@@ -94,10 +62,6 @@ services:
             POSTGRES_DB: app
         volumes:
             - api-postgres:/var/lib/postgresql/data
-        deploy:
-            placement:
-                constraints: [node.labels.db == db]
-            endpoint_mode: dnsrr
-
+    
 volumes:
     api-postgres:

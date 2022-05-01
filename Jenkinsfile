@@ -176,10 +176,24 @@ pipeline {
                     sshagent (credentials: ['PRODUCTION_AUTH']) {
                         sh "ssh -o StrictHostKeyChecking=no deploy@${HOST} -p ${PORT} 'rm -rf site_${env.BUILD_NUMBER}'"
                         sh "ssh -o StrictHostKeyChecking=no deploy@${HOST} -p ${PORT} 'mkdir site_${env.BUILD_NUMBER}'"
-                        sh "envsubst < docker-compose-production.yml > docker-compose-production-env.yml"
-                        sh "scp -o StrictHostKeyChecking=no -P ${PORT} docker-compose-production-env.yml deploy@${HOST}:site_${env.BUILD_NUMBER}/docker-compose.yml"
-                        sh "rm -f docker-compose-production-env.yml"
-                        sh "ssh -o StrictHostKeyChecking=no deploy@${HOST} -p ${PORT} 'cd site_${env.BUILD_NUMBER} && docker stack deploy --compose-file docker-compose.yml auction --with-registry-auth --prune'"
+                        sh "scp -o StrictHostKeyChecking=no -P ${PORT} docker-compose-production.yml ${HOST}:site_${env.BUILD_NUMBER}/docker-compose.yml"
+                        sh "ssh -o StrictHostKeyChecking=no deploy@${HOST} -p ${PORT} 'cd site_${env.BUILD_NUMBER} && echo 'COMPOSE_PROJECT_NAME=auction' >> .env'"
+                        sh "ssh -o StrictHostKeyChecking=no deploy@${HOST} -p ${PORT} 'cd site_${env.BUILD_NUMBER} && echo 'REGISTRY=${REGISTRY}' >> .env'"
+                        sh "ssh -o StrictHostKeyChecking=no deploy@${HOST} -p ${PORT} 'cd site_${env.BUILD_NUMBER} && echo 'IMAGE_TAG=${IMAGE_TAG}' >> .env'"
+                        sh "ssh -o StrictHostKeyChecking=no deploy@${HOST} -p ${PORT} 'cd site_${env.BUILD_NUMBER} && echo 'API_DB_PASSWORD=${API_DB_PASSWORD}' >> .env'"
+                        sh "ssh -o StrictHostKeyChecking=no deploy@${HOST} -p ${PORT} 'cd site_${env.BUILD_NUMBER} && echo 'API_MAILER_HOST=${API_MAILER_HOST}' >> .env'"
+                        sh "ssh -o StrictHostKeyChecking=no deploy@${HOST} -p ${PORT} 'cd site_${env.BUILD_NUMBER} && echo 'API_MAILER_PORT=${API_MAILER_PORT}' >> .env'"
+                        sh "ssh -o StrictHostKeyChecking=no deploy@${HOST} -p ${PORT} 'cd site_${env.BUILD_NUMBER} && echo 'API_MAILER_PASSWORD=${API_MAILER_PASSWORD}' >> .env'"
+                        sh "ssh -o StrictHostKeyChecking=no deploy@${HOST} -p ${PORT} 'cd site_${env.BUILD_NUMBER} && echo 'API_MAILER_FROM_EMAIL=${API_MAILER_FROM_EMAIL}' >> .env'"
+                        sh "ssh -o StrictHostKeyChecking=no deploy@${HOST} -p ${PORT} 'cd site_${env.BUILD_NUMBER} && echo 'SENTRY_DSN=${SENTRY_DSN}' >> .env'"
+                        sh "ssh -o StrictHostKeyChecking=no deploy@${HOST} -p ${PORT} 'cd site_${env.BUILD_NUMBER} && docker-compose pull'"
+                        sh "ssh -o StrictHostKeyChecking=no deploy@${HOST} -p ${PORT} 'cd site_${env.BUILD_NUMBER} && docker-compose up --build -d api-postgres api-php-cli'"
+                        sh "ssh -o StrictHostKeyChecking=no deploy@${HOST} -p ${PORT} 'cd site_${env.BUILD_NUMBER} && docker-compose run api-php-cli wait-for-it api-postgres:5432 -t 60'"
+                        sh "ssh -o StrictHostKeyChecking=no deploy@${HOST} -p ${PORT} 'cd site_${env.BUILD_NUMBER} && docker-compose run api-php-cli php bin/app.php migrations:migrate --no-interaction'"
+                        sh "ssh -o StrictHostKeyChecking=no deploy@${HOST} -p ${PORT} 'cd site_${env.BUILD_NUMBER} && docker-compose up --force-recreate --remove-orphans -d'"
+                        sh "ssh -o StrictHostKeyChecking=no deploy@${HOST} -p ${PORT} 'rm -f site'"
+                        sh "ssh -o StrictHostKeyChecking=no deploy@${HOST} -p ${PORT} 'ln -sr site_${env.BUILD_NUMBER} site'"
+
                     }
                 }
             }
