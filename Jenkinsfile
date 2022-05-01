@@ -176,7 +176,7 @@ pipeline {
                     sshagent (credentials: ['PRODUCTION_AUTH']) {
                         sh "ssh -o StrictHostKeyChecking=no deploy@${HOST} -p ${PORT} 'rm -rf site_${env.BUILD_NUMBER}'"
                         sh "ssh -o StrictHostKeyChecking=no deploy@${HOST} -p ${PORT} 'mkdir site_${env.BUILD_NUMBER}'"
-                        sh "scp -o StrictHostKeyChecking=no -P ${PORT} docker-compose-production.yml ${HOST}:site_${env.BUILD_NUMBER}/docker-compose.yml"
+                        sh "scp -P ${PORT} docker-compose-production.yml ${HOST}:site_${env.BUILD_NUMBER}/docker-compose.yml"
                         sh "ssh -o StrictHostKeyChecking=no deploy@${HOST} -p ${PORT} 'cd site_${env.BUILD_NUMBER} && echo 'COMPOSE_PROJECT_NAME=auction' >> .env'"
                         sh "ssh -o StrictHostKeyChecking=no deploy@${HOST} -p ${PORT} 'cd site_${env.BUILD_NUMBER} && echo 'REGISTRY=${REGISTRY}' >> .env'"
                         sh "ssh -o StrictHostKeyChecking=no deploy@${HOST} -p ${PORT} 'cd site_${env.BUILD_NUMBER} && echo 'IMAGE_TAG=${IMAGE_TAG}' >> .env'"
