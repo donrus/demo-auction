@@ -174,12 +174,12 @@ pipeline {
                     string(credentialsId: 'SENTRY_DSN', variable: 'SENTRY_DSN')
                 ]) {
                     sshagent (credentials: ['PRODUCTION_AUTH']) {
-                        sh "ssh -o StrictHostKeyChecking=no deploy@${HOST} -p ${PORT} 'rm -rf site_${env.BUILD_NUMBER}'"
-                        sh "ssh -o StrictHostKeyChecking=no deploy@${HOST} -p ${PORT} 'mkdir site_${env.BUILD_NUMBER}'"
+                        sh "ssh -o StrictHostKeyChecking=no deploy@${HOST} -p ${PORT} 'rm -rf auction_${env.BUILD_NUMBER}'"
+                        sh "ssh -o StrictHostKeyChecking=no deploy@${HOST} -p ${PORT} 'mkdir auction_${env.BUILD_NUMBER}'"
                         sh "envsubst < docker-compose-production.yml > docker-compose-production-env.yml"
-                        sh "scp -o StrictHostKeyChecking=no -P ${PORT} docker-compose-production-env.yml deploy@${HOST}:site_${env.BUILD_NUMBER}/docker-compose.yml"
+                        sh "scp -o StrictHostKeyChecking=no -P ${PORT} docker-compose-production-env.yml deploy@${HOST}:auction_${env.BUILD_NUMBER}/docker-compose.yml"
                         sh "rm -f docker-compose-production-env.yml"
-                        sh "ssh -o StrictHostKeyChecking=no deploy@${HOST} -p ${PORT} 'cd site_${env.BUILD_NUMBER} && docker stack deploy --compose-file docker-compose.yml auction --with-registry-auth --prune'"
+                        sh "ssh -o StrictHostKeyChecking=no deploy@${HOST} -p ${PORT} 'cd auction_${env.BUILD_NUMBER} && docker stack deploy --compose-file docker-compose.yml auction --with-registry-auth --prune'"
                     }
                 }
             }
